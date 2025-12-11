@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5174") // Allow React (default Vite port) to communicate
+@CrossOrigin(origins = "http://localhost:5173") // Allow React (default Vite port) to communicate
 public class ResumeController {
 
     @Autowired
