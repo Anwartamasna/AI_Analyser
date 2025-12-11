@@ -30,9 +30,43 @@ services:
     networks:
       - resume_network
 
+  app-backend:
+    build:
+      context: ./resumeanalyzer
+      dockerfile: Dockerfile
+    container_name: resume_backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/resume_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      # Ensure CORS works if needed, or if properties use env vars
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - resume_network
+
+  app-frontend:
+    build:
+      context: ./airesumeanalyser
+      dockerfile: Dockerfile
+    container_name: resume_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - app-backend
+    networks:
+      - resume_network
+
 volumes:
   postgres_data:
   minio_data:
+
 
 networks:
   resume_network:
