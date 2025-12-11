@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Main Spring Boot Application Entry Point and REST Controller.
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173") // Allow React (default Vite port) to communicate
+@CrossOrigin(origins = "*", maxAge = 3600) // Allow all origins for dev
 public class ResumeController {
 
     @Autowired
@@ -29,26 +30,24 @@ public class ResumeController {
      * @return A JSON string containing the AI's suitability analysis.
      */
     @PostMapping("/analyze")
-    public ResponseEntity<String> analyzeResume(
+    public ResponseEntity<?> analyzeResume(
             @RequestParam("resume") MultipartFile resumeFile,
             @RequestParam("jobDescription") String jobDescription) {
 
         if (resumeFile.isEmpty() || jobDescription.isEmpty()) {
-            return new ResponseEntity<>("{\"error\": \"Resume file and job description are required.\"}",
-                    HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(Map.of("error", "Resume file and job description are required."));
         }
 
         try {
-            // Service handles the conversion to Base64 and the Gemini API call
-            String resultJson = analysisService.analyzeSuitability(resumeFile, jobDescription);
+            // Service handles MinIO upload, DB save, and Gemini API call
+            Map<String, Object> result = analysisService.analyzeResume(resumeFile, jobDescription);
 
-            // The service returns the raw JSON from the AI, which we pass through.
-            return new ResponseEntity<>(resultJson, HttpStatus.OK);
+            return ResponseEntity.ok(result);
 
         } catch (IOException e) {
             System.err.println("Error during file processing or API call: " + e.getMessage());
-            return new ResponseEntity<>("{\"error\": \"Internal server error during analysis. Check service logs.\"}",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal server error: " + e.getMessage()));
         }
     }
 }

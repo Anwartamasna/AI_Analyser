@@ -1,17 +1,26 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { Upload, FileText, Send, Loader, CheckCircle, XCircle, ArrowRight, Zap, Shield, Target } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const API_BASE_URL = 'http://localhost:8080/api/analyze';
 
-// Main App Component
-const App = () => {
+// Home Page Component (The previous App logic)
+const Home = () => {
   const [jobDescription, setJobDescription] = useState('');
   const [resumeFile, setResumeFile] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
 
   // Function to handle file selection
   const handleFileChange = (e) => {
@@ -27,6 +36,13 @@ const App = () => {
   // Function to handle form submission and API call
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      // Redirect to login if not authenticated
+      navigate('/login');
+      return;
+    }
+
     if (!resumeFile || !jobDescription.trim()) {
       setError('Please upload a resume and provide a job description.');
       return;
@@ -47,7 +63,7 @@ const App = () => {
           try {
             const response = await fetch(url, options);
             if (response.status === 401 || response.status === 403) {
-              throw new Error("Authentication failed. Check API Key or CORS setup.");
+              throw new Error("Authentication failed. Please login again.");
             }
             if (!response.ok) {
               // Throw error for 4xx or 5xx status codes
@@ -75,21 +91,22 @@ const App = () => {
 
       const response = await fetchWithRetry(API_BASE_URL, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}` // Send JWT token
+        },
         body: formData,
       });
 
-      const rawJsonText = await response.text();
-      // The backend returns a raw JSON string from the AI, which needs to be parsed again.
-      const parsedResult = JSON.parse(rawJsonText);
+      const parsedResult = await response.json();
       setAnalysisResult(parsedResult);
 
     } catch (err) {
       console.error('Analysis failed:', err.message);
-      setError(`Analysis Failed: ${err.message}. Please check your Spring Boot server and API key.`);
+      setError(`Analysis Failed: ${err.message}.`);
     } finally {
       setLoading(false);
     }
-  }, [resumeFile, jobDescription]);
+  }, [resumeFile, jobDescription, user, token, navigate]);
 
   // Determine styles for the score and suitability icon
   const scoreStyles = useMemo(() => {
@@ -240,6 +257,19 @@ const App = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
 
+            {!user && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center rounded-3xl">
+                <div className="bg-white p-8 rounded-2xl shadow-xl border border-indigo-100">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Login Required</h3>
+                  <p className="text-gray-500 mb-6">Please sign in to run an analysis and save your results.</p>
+                  <div className="flex space-x-4 justify-center">
+                    <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login') }} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold shadow hover:bg-indigo-700 transition">Login</a>
+                    <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register') }} className="px-6 py-2.5 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-semibold hover:bg-indigo-50 transition">Sign Up</a>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* File Upload Section */}
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-4">1. specific your resume</h3>
@@ -329,5 +359,28 @@ const App = () => {
     </div>
   );
 };
+
+// Main App which provides context and routing
+const App = () => {
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </Router>
+  )
+}
 
 export default App;
