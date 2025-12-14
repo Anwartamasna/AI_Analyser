@@ -141,6 +141,9 @@ class ResumeProcessor:
             }}
             """
 
+            logger.info(f"Analyzing resume (length: {len(resume_text)}) with job description (length: {len(job_description)})")
+            logger.info(f"Ollama Prompt (first 500 chars): {prompt[:500]}...")
+
             payload = {
                 "model": self.model_name,
                 "prompt": prompt,
@@ -159,9 +162,21 @@ class ResumeProcessor:
             analysis_content = result_json.get("response", "{}")
             
             # Parse the JSON string inside "response"
-            return json.loads(analysis_content)
+            if analysis_content:
+                logger.info(f"Raw Ollama Response: {analysis_content}")
+                return json.loads(analysis_content)
+            else:
+                logger.error("Empty response from Ollama")
+                return {
+                    "compatibility_score": 0,
+                    "summary": "Empty response from AI model",
+                    "matched_skills": [],
+                    "missing_skills": [],
+                    "recommendations": []
+                }
 
         except Exception as e:
+            logger.exception("Analysis failed with exception")
             logger.error(f"Analysis failed: {e}")
             # Return basic fallback
             return {

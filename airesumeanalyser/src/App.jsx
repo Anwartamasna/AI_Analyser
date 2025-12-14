@@ -231,7 +231,7 @@ const Home = () => {
               <Zap size={24} />
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-2">Instant Analysis</h3>
-            <p className="text-gray-500">Get feedback in seconds powered by advanced Gemini 2.5 AI models.</p>
+            <p className="text-gray-500">Get feedback in seconds.</p>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-4">
