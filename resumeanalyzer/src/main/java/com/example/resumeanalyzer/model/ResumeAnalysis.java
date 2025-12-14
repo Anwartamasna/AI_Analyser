@@ -27,6 +27,50 @@ public class ResumeAnalysis {
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(columnDefinition = "TEXT")
+    private String matchedSkills; // JSON or CSV
+
+    @Column(columnDefinition = "TEXT")
+    private String missingSkills; // JSON or CSV
+
+    @Column(columnDefinition = "TEXT")
+    private String recommendation;
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getMatchedSkills() {
+        return matchedSkills;
+    }
+
+    public void setMatchedSkills(String matchedSkills) {
+        this.matchedSkills = matchedSkills;
+    }
+
+    public String getMissingSkills() {
+        return missingSkills;
+    }
+
+    public void setMissingSkills(String missingSkills) {
+        this.missingSkills = missingSkills;
+    }
+
+    public String getRecommendation() {
+        return recommendation;
+    }
+
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation;
+    }
+
     public ResumeAnalysis() {
     }
 

@@ -1,0 +1,12 @@
+kafka-python
+spacy
+sentence-transformers
+torch
+transformers
+numpy
+pandas
+minio
+pytesseract
+Pillow
+requests
+pymupdf
