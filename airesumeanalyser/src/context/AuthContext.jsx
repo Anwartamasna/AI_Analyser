@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const login = async (username, password) => {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
@@ -37,11 +37,11 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
-    const register = async (username, password) => {
-        const response = await fetch('http://localhost:8080/api/auth/register', {
+    const register = async (username, email, fullName, password) => {
+        const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, email, fullName, password }),
         });
 
         if (!response.ok) {

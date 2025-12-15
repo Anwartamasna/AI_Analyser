@@ -55,15 +55,22 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody Map<String, String> signUpRequest) {
         String username = signUpRequest.get("username");
+        String email = signUpRequest.get("email");
+        String fullName = signUpRequest.get("fullName");
         String password = signUpRequest.get("password");
-        System.out.println("Registering user: " + username);
+        System.out.println("Registering user: " + username + " with email: " + email);
 
         if (userRepository.existsByUsername(username)) {
             System.out.println("Username already exists: " + username);
             return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken!"));
         }
 
-        User user = new User(username, encoder.encode(password));
+        if (userRepository.existsByEmail(email)) {
+            System.out.println("Email already exists: " + email);
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is already registered!"));
+        }
+
+        User user = new User(username, email, fullName, encoder.encode(password));
         userRepository.save(user);
         System.out.println("User saved to DB: " + username);
 
