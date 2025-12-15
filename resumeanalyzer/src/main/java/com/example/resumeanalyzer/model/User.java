@@ -1,6 +1,7 @@
 package com.example.resumeanalyzer.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<ResumeAnalysis> analysisHistory = new ArrayList<>();
 
     public User() {

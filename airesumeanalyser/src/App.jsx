@@ -9,7 +9,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
-const API_BASE_URL = 'http://localhost:8080/api/analyze';
+const API_BASE_URL = '/api/analyze';
 
 // Home Page Component (The previous App logic)
 const Home = () => {

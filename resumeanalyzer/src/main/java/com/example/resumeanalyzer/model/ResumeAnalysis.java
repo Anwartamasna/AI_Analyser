@@ -1,6 +1,7 @@
 package com.example.resumeanalyzer.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,6 +14,7 @@ public class ResumeAnalysis {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     private String jobTitle; // Extracted or user provided (using job description snippet for now)
