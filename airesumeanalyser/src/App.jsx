@@ -142,13 +142,18 @@ const Home = () => {
   const AnalysisDisplay = ({ result, styles }) => (
     <div id="results-section" className="mt-12 p-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl w-full max-w-4xl mx-auto transform transition-all animate-fade-in-up">
       <div className="bg-white rounded-xl p-8 md:p-10">
-        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
-          <h2 className="text-3xl font-bold text-gray-900 flex items-center">
-            <styles.icon className={`w-8 h-8 mr-3 ${styles.color}`} />
-            Analysis Results
-          </h2>
-          <div className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">
-            AI-Powered Assessment
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-extrabold text-gray-900">Analysis Results</h2>
+          <div className="flex items-center space-x-2">
+            {result.experience_level && (
+              <span className="text-xs font-semibold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
+                {result.experience_level}
+              </span>
+            )}
+            <span className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">
+              AI-Powered Assessment
+            </span>
           </div>
         </div>
 
@@ -156,48 +161,56 @@ const Home = () => {
         <div className={`p-6 rounded-2xl mb-8 flex flex-col md:flex-row items-center justify-between ${styles.bg} border ${styles.border}`}>
           <div className="flex items-center mb-4 md:mb-0">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold bg-white shadow-sm border-4 ${styles.border} ${styles.color} mr-6`}>
-              {result.suitability_score}
+              {result.compatibility_score || result.suitability_score || 0}
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide font-semibold text-gray-500 mb-1">Match Score</p>
               <h3 className={`text-2xl font-bold ${styles.color}`}>
-                {result.is_suitable ? 'Great Match' : 'Review Needed'}
+                {(result.compatibility_score || result.suitability_score || 0) >= 75 ? 'Great Match' :
+                  (result.compatibility_score || result.suitability_score || 0) >= 60 ? 'Good Potential' : 'Needs Work'}
               </h3>
             </div>
           </div>
           <div className="text-center md:text-right">
             <div className="inline-flex items-center px-4 py-2 rounded-lg bg-white shadow-sm font-semibold text-gray-700">
-              {result.is_suitable ? 'Highly Recommended' : 'Requirements Gap'}
+              {result.is_suitable ? '✓ Recommended' : 'Areas to Improve'}
             </div>
           </div>
         </div>
 
-        {/* Detailed Analysis */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
+        {/* Summary */}
+        {result.summary && (
+          <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <p className="text-gray-700 leading-relaxed">{result.summary}</p>
+          </div>
+        )}
+
+        {/* Strengths & Matched Skills */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="bg-green-50 p-6 rounded-xl border border-green-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <span className="w-2 h-8 bg-green-500 rounded-full mr-3"></span>
-              Matched Skills
+              Key Strengths
             </h3>
-            <ul className="space-y-3">
-              {result.key_strengths?.map((item, index) => (
-                <li key={index} className="flex items-start text-gray-600">
-                  <span className="text-green-500 mr-2 mt-1"><CheckCircle size={16} /></span>
+            <ul className="space-y-2">
+              {(result.strengths || result.matched_skills || result.key_strengths || []).slice(0, 5).map((item, index) => (
+                <li key={index} className="flex items-start text-gray-700">
+                  <span className="text-green-500 mr-2 mt-0.5"><CheckCircle size={16} /></span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
+          <div className="bg-red-50 p-6 rounded-xl border border-red-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <span className="w-2 h-8 bg-red-500 rounded-full mr-3"></span>
-              Missing Skills
+              Skills to Develop
             </h3>
-            <ul className="space-y-3">
-              {result.key_gaps?.map((item, index) => (
-                <li key={index} className="flex items-start text-gray-600">
-                  <span className="text-red-500 mr-2 mt-1"><XCircle size={16} /></span>
+            <ul className="space-y-2">
+              {(result.missing_skills || result.key_gaps || []).slice(0, 5).map((item, index) => (
+                <li key={index} className="flex items-start text-gray-700">
+                  <span className="text-red-500 mr-2 mt-0.5"><XCircle size={16} /></span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
               ))}
@@ -205,16 +218,45 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="mt-8">
+        {/* Recommendations */}
+        <div className="mb-8">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
             <span className="w-2 h-8 bg-indigo-500 rounded-full mr-3"></span>
-            AI Recommendation
+            Actionable Recommendations
           </h3>
-          <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-900 leading-relaxed italic relative">
-            <span className="absolute top-4 left-4 text-4xl text-indigo-200 opacity-50">"</span>
-            {result.recommendation}
-            <span className="absolute bottom-4 right-4 text-4xl text-indigo-200 opacity-50">"</span>
+          <div className="grid grid-cols-1 gap-3">
+            {(result.recommendations || []).map((rec, index) => (
+              <div key={index} className="flex items-start p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                  {index + 1}
+                </span>
+                <p className="text-indigo-900">{rec}</p>
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* ATS Keywords & Interview Tips */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {result.ats_keywords && result.ats_keywords.length > 0 && (
+            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+              <h4 className="text-sm font-bold text-yellow-800 mb-3 uppercase tracking-wide">🔍 ATS Keywords to Add</h4>
+              <div className="flex flex-wrap gap-2">
+                {result.ats_keywords.map((keyword, index) => (
+                  <span key={index} className="px-2 py-1 bg-yellow-200 text-yellow-900 rounded text-sm font-medium">
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.interview_tips && (
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <h4 className="text-sm font-bold text-blue-800 mb-2 uppercase tracking-wide">💡 Interview Tip</h4>
+              <p className="text-blue-900 italic">{result.interview_tips}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

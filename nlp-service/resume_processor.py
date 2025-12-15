@@ -120,26 +120,70 @@ class ResumeProcessor:
                 logger.error(f"Failed to get resume text: {e}")
                 resume_text = "Error extracting resume text."
 
-            # 2. Call Ollama
-            prompt = f"""
-            Act as an Expert HR Resume Analyzer. 
-            Analyze the following resume against the Job Description.
+            # 2. Call Ollama with enhanced prompt
+            prompt = f"""You are an expert HR professional, career coach, and ATS (Applicant Tracking System) specialist with 15+ years of experience in tech recruitment.
 
-            JOB DESCRIPTION:
-            {job_description}
+Analyze the candidate's resume against the job description with EXTREME attention to detail. Be both encouraging and honest.
 
-            RESUME TEXT:
-            {resume_text}
+=== JOB DESCRIPTION ===
+{job_description}
 
-            Provide the output STRICTLY in the following JSON format:
-            {{
-                "compatibility_score": <int 0-100>,
-                "summary": "<concise summary of fit>",
-                "matched_skills": ["<skill1>", "<skill2>"],
-                "missing_skills": ["<skill1>", "<skill2>"],
-                "recommendations": ["<rec1>", "<rec2>"]
-            }}
-            """
+=== CANDIDATE'S RESUME ===
+{resume_text}
+
+=== ANALYSIS INSTRUCTIONS ===
+Perform a comprehensive analysis following these guidelines:
+
+1. **COMPATIBILITY SCORE (0-100)**: 
+   - 90-100: Exceptional match, exceeds requirements
+   - 75-89: Strong match, meets most requirements  
+   - 60-74: Good potential, some gaps to address
+   - 40-59: Partial match, significant development needed
+   - 0-39: Major mismatch, consider other roles
+
+2. **MATCHED SKILLS**: List ALL skills from the resume that match or relate to job requirements. Include:
+   - Hard technical skills (programming languages, tools, frameworks)
+   - Soft skills (leadership, communication, teamwork)
+   - Domain knowledge and industry experience
+   - Certifications and qualifications
+
+3. **MISSING SKILLS**: Identify CRITICAL skills required by the job that are not evident in the resume. Prioritize by importance.
+
+4. **EXPERIENCE ANALYSIS**: Evaluate years of experience, relevance of past roles, and career progression.
+
+5. **RECOMMENDATIONS**: Provide 4-6 SPECIFIC, ACTIONABLE recommendations:
+   - How to tailor the resume for THIS specific role
+   - Skills to highlight more prominently
+   - Certifications or training to pursue
+   - How to address experience gaps
+   - Keywords to add for ATS optimization
+
+6. **SUMMARY**: Write a 2-3 sentence professional assessment of the candidate's fit, highlighting their strongest selling points and main improvement areas.
+
+=== OUTPUT FORMAT (STRICT JSON) ===
+{{
+    "compatibility_score": <integer 0-100>,
+    "is_suitable": <boolean - true if score >= 60>,
+    "summary": "<2-3 sentence professional assessment>",
+    "experience_level": "<Entry Level / Mid Level / Senior / Executive>",
+    "matched_skills": ["<skill1>", "<skill2>", "<skill3>", ...],
+    "missing_skills": ["<critical_skill1>", "<critical_skill2>", ...],
+    "strengths": ["<key_strength1>", "<key_strength2>", "<key_strength3>"],
+    "recommendations": [
+        "<specific actionable recommendation 1>",
+        "<specific actionable recommendation 2>",
+        "<specific actionable recommendation 3>",
+        "<specific actionable recommendation 4>"
+    ],
+    "ats_keywords": ["<keyword1>", "<keyword2>", "<keyword3>"],
+    "interview_tips": "<One key tip for interviewing for this role>"
+}}
+
+IMPORTANT: 
+- Be HONEST but CONSTRUCTIVE. Don't inflate scores.
+- Provide SPECIFIC advice, not generic statements.
+- Focus on what the candidate CAN improve.
+- Output ONLY valid JSON, no markdown or extra text."""
 
             logger.info(f"Analyzing resume (length: {len(resume_text)}) with job description (length: {len(job_description)})")
             logger.info(f"Ollama Prompt (first 500 chars): {prompt[:500]}...")
@@ -150,7 +194,8 @@ class ResumeProcessor:
                 "format": "json",
                 "stream": False,
                 "options": {
-                    "temperature": 0.2
+                    "temperature": 0.3,
+                    "num_predict": 2048
                 }
             }
 
