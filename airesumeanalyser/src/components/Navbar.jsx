@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, FileText, CheckCircle, BarChart2, User, LogOut } from 'lucide-react';
+import { Menu, X, FileText, CheckCircle, BarChart2, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -35,8 +35,8 @@ const Navbar = () => {
     return (
         <nav
             className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
-                    ? 'bg-white/80 backdrop-blur-md shadow-lg py-3'
-                    : 'bg-transparent py-5'
+                ? 'bg-white/80 backdrop-blur-md shadow-lg py-3'
+                : 'bg-transparent py-5'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,7 +67,10 @@ const Navbar = () => {
                         {user ? (
                             <div className="flex items-center space-x-4">
                                 <Link to="/dashboard" className="text-gray-700 hover:text-indigo-600 font-medium text-sm flex items-center">
-                                    <User size={18} className="mr-1" /> Dashboard
+                                    <BarChart2 size={18} className="mr-1" /> Dashboard
+                                </Link>
+                                <Link to="/profile" className="text-gray-700 hover:text-indigo-600 font-medium text-sm flex items-center">
+                                    <User size={18} className="mr-1" /> Profile
                                 </Link>
                                 <button onClick={handleLogout} className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-100 transition flex items-center">
                                     <LogOut size={16} className="mr-2" /> Logout
@@ -111,7 +114,8 @@ const Navbar = () => {
                     <div className="pt-4 border-t border-gray-100">
                         {user ? (
                             <>
-                                <Link to="/dashboard" className="block w-full text-left py-2 font-medium text-gray-700">Dashboard</Link>
+                                <Link to="/dashboard" className="block w-full text-left py-2 font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                                <Link to="/profile" className="block w-full text-left py-2 font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                                 <button onClick={handleLogout} className="mt-2 w-full bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold">Logout</button>
                             </>
                         ) : (

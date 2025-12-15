@@ -21,6 +21,8 @@ public class User {
 
     private String fullName;
 
+    private String profilePicture; // MinIO file name
+
     @Column(nullable = false)
     private String password;
 
@@ -68,6 +70,14 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public String getPassword() {
