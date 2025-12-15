@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { Upload, FileText, Send, Loader, CheckCircle, XCircle, ArrowRight, Zap, Shield, Target } from 'lucide-react';
+import { Upload, FileText, Send, Loader, CheckCircle, XCircle, ArrowRight, Zap, Shield, Target, Clock } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -98,11 +98,24 @@ const Home = () => {
       });
 
       const parsedResult = await response.json();
-      setAnalysisResult(parsedResult);
+
+      // Check if the analysis is still pending (timeout on backend)
+      if (parsedResult.status === 'PENDING_TIMEOUT') {
+        setError(null);
+        setAnalysisResult({
+          ...parsedResult,
+          isPending: true
+        });
+      } else {
+        setAnalysisResult(parsedResult);
+      }
 
     } catch (err) {
       console.error('Analysis failed:', err.message);
-      setError(`Analysis Failed: ${err.message}.`);
+      // Provide more helpful error messages
+      if (err.message.includes('timeout') || err.message.includes('Failed to fetch')) {
+        setError('Analysis is taking longer than expected. The AI model may still be processing your resume. Please check your Dashboard in a few minutes to see the results.');
+      }
     } finally {
       setLoading(false);
     }
@@ -163,7 +176,7 @@ const Home = () => {
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <span className="w-2 h-8 bg-green-500 rounded-full mr-3"></span>
-              Key Strengths
+              Matched Skills
             </h3>
             <ul className="space-y-3">
               {result.key_strengths?.map((item, index) => (
@@ -178,7 +191,7 @@ const Home = () => {
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <span className="w-2 h-8 bg-red-500 rounded-full mr-3"></span>
-              Areas for Improvement
+              Missing Skills
             </h3>
             <ul className="space-y-3">
               {result.key_gaps?.map((item, index) => (
@@ -342,15 +355,39 @@ const Home = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="mt-8 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl animate-shake">
-              <p className="font-bold flex items-center"><XCircle className="w-5 h-5 mr-2" /> Analysis Error</p>
+            <div className={`mt-8 p-4 border-l-4 rounded-r-xl ${error.includes('taking longer')
+              ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
+              : 'bg-red-50 border-red-500 text-red-700 animate-shake'
+              }`}>
+              <p className="font-bold flex items-center">
+                {error.includes('taking longer')
+                  ? <><Clock className="w-5 h-5 mr-2" /> Processing in Background</>
+                  : <><XCircle className="w-5 h-5 mr-2" /> Analysis Error</>}
+              </p>
               <p className="mt-1">{error}</p>
+              {error.includes('taking longer') && (
+                <a
+                  href="/dashboard"
+                  className="mt-3 inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 transition"
+                >
+                  Go to Dashboard <ArrowRight className="w-4 h-4 ml-1" />
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Pending Analysis Notice */}
+          {analysisResult?.isPending && (
+            <div className="mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 rounded-r-xl">
+              <p className="font-bold flex items-center"><Clock className="w-5 h-5 mr-2" /> Analysis Still Processing</p>
+              <p className="mt-1">Your analysis is taking longer than expected. The AI model is still processing your resume in the background.</p>
+              <p className="mt-2">Please check your <a href="/dashboard" className="text-indigo-600 font-semibold hover:underline">Dashboard</a> in a few minutes to see your results.</p>
             </div>
           )}
         </div>
 
-        {/* Analysis Results Display */}
-        {analysisResult && (
+        {/* Analysis Results Display - only show if not pending */}
+        {analysisResult && !analysisResult.isPending && (
           <AnalysisDisplay result={analysisResult} styles={scoreStyles} />
         )}
       </main>

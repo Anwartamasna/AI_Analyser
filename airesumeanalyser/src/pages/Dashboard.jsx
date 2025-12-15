@@ -3,18 +3,19 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FileText, Plus, Clock, Download, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Plus, Clock, Download, CheckCircle, XCircle, Eye, X } from 'lucide-react';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:8080/api/profile/history', {
+                const response = await fetch('/api/profile/history', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -32,6 +33,21 @@ const Dashboard = () => {
 
         fetchHistory();
     }, []);
+
+    const closeModal = () => setSelectedItem(null);
+
+    // Parse JSON strings safely
+    const parseJsonField = (field) => {
+        if (!field) return [];
+        try {
+            if (typeof field === 'string') {
+                return JSON.parse(field);
+            }
+            return field;
+        } catch {
+            return field.split(',').map(s => s.trim());
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -52,7 +68,7 @@ const Dashboard = () => {
                     </Link>
                 </div>
 
-                {/* Stats Overview (Mocked for now) */}
+                {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
                         <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-4">
@@ -63,7 +79,6 @@ const Dashboard = () => {
                             <h3 className="text-2xl font-bold text-gray-900">{history.length}</h3>
                         </div>
                     </div>
-                    {/* Add more stats if available from backend */}
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
@@ -111,7 +126,7 @@ const Dashboard = () => {
                                                 <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${item.suitabilityScore >= 80 ? 'bg-green-100 text-green-700' :
                                                         item.suitabilityScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                                                     }`}>
-                                                    {item.suitabilityScore}
+                                                    {item.suitabilityScore ?? '-'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -119,18 +134,30 @@ const Dashboard = () => {
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                         <CheckCircle size={12} className="mr-1" /> Recommended
                                                     </span>
-                                                ) : (
+                                                ) : item.suitabilityScore ? (
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                                         Review
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        <Clock size={12} className="mr-1" /> Processing
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                {item.fileUrl && (
-                                                    <a href={item.fileUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center justify-end">
-                                                        <Download size={16} className="mr-1" /> PDF
-                                                    </a>
-                                                )}
+                                                <div className="flex items-center justify-end space-x-3">
+                                                    <button 
+                                                        onClick={() => setSelectedItem(item)}
+                                                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center"
+                                                    >
+                                                        <Eye size={16} className="mr-1" /> Details
+                                                    </button>
+                                                    {item.fileUrl && (
+                                                        <a href={item.fileUrl} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center">
+                                                            <Download size={16} className="mr-1" /> PDF
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -140,9 +167,125 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* Detail Modal */}
+            {selectedItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white">
+                            <h2 className="text-xl font-bold text-gray-900">Analysis Details</h2>
+                            <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 space-y-6">
+                            {/* Score Section */}
+                            <div className={`p-4 rounded-xl flex items-center justify-between ${
+                                selectedItem.suitabilityScore >= 80 ? 'bg-green-50 border border-green-200' :
+                                selectedItem.suitabilityScore >= 50 ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50 border border-red-200'
+                            }`}>
+                                <div className="flex items-center">
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${
+                                        selectedItem.suitabilityScore >= 80 ? 'bg-green-100 text-green-700' :
+                                        selectedItem.suitabilityScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                                    }`}>
+                                        {selectedItem.suitabilityScore ?? '?'}
+                                    </div>
+                                    <div className="ml-4">
+                                        <p className="text-sm text-gray-500">Match Score</p>
+                                        <p className="font-bold text-gray-900">
+                                            {selectedItem.suitabilityScore >= 80 ? 'Great Match' : 
+                                             selectedItem.suitabilityScore >= 50 ? 'Potential Match' : 'Needs Improvement'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    {new Date(selectedItem.createdAt).toLocaleString()}
+                                </div>
+                            </div>
+
+                            {/* Job Title */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Job Title</h3>
+                                <p className="text-gray-900">{selectedItem.jobTitle || 'Not specified'}</p>
+                            </div>
+
+                            {/* Summary */}
+                            {selectedItem.summary && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Summary</h3>
+                                    <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedItem.summary}</p>
+                                </div>
+                            )}
+
+                            {/* Matched Skills */}
+                            {selectedItem.matchedSkills && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center">
+                                        <CheckCircle size={16} className="text-green-500 mr-2" /> Matched Skills
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {parseJsonField(selectedItem.matchedSkills).map((skill, idx) => (
+                                            <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Missing Skills */}
+                            {selectedItem.missingSkills && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center">
+                                        <XCircle size={16} className="text-red-500 mr-2" /> Missing Skills
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {parseJsonField(selectedItem.missingSkills).map((skill, idx) => (
+                                            <span key={idx} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Recommendation */}
+                            {selectedItem.recommendation && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommendation</h3>
+                                    <p className="text-indigo-900 bg-indigo-50 p-4 rounded-lg italic">{selectedItem.recommendation}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 flex justify-end space-x-3">
+                            {selectedItem.fileUrl && (
+                                <a 
+                                    href={selectedItem.fileUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center"
+                                >
+                                    <Download size={16} className="mr-2" /> Download Resume
+                                </a>
+                            )}
+                            <button 
+                                onClick={closeModal}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </div>
     );
 };
 
 export default Dashboard;
+

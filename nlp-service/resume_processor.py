@@ -31,7 +31,7 @@ class ResumeProcessor:
         
         # Ollama Configuration
         self.ollama_host = os.environ.get('OLLAMA_HOST', 'http://ollama:11434')
-        self.model_name = "qwen2.5:7b" # User requested Qwen3:8b, but using qwen2.5:7b as stable equivalent or we can try "qwen2.5-coder:7b"
+        self.model_name = "qwen2.5:1.5b"  # Using smaller model for faster CPU inference
         
         # Ensure model is pulled
         self.ensure_model_exists()
@@ -155,7 +155,7 @@ class ResumeProcessor:
             }
 
             logger.info("Sending request to Ollama...")
-            response = requests.post(f"{self.ollama_host}/api/generate", json=payload, timeout=120)
+            response = requests.post(f"{self.ollama_host}/api/generate", json=payload, timeout=300)
             response.raise_for_status()
             
             result_json = response.json()
