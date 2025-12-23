@@ -147,7 +147,7 @@ Perform a comprehensive analysis following these guidelines:
    - Domain knowledge and industry experience
    - Certifications and qualifications
 
-3. **MISSING SKILLS**: Identify CRITICAL skills required by the job that are not evident in the resume. Prioritize by importance.
+3. **MISSING SKILLS**: Identify CRITICAL skills required by the job that are not mention in the resume. Suggest skills to improve and prioritize by importance.
 
 4. **EXPERIENCE ANALYSIS**: Evaluate years of experience, relevance of past roles, and career progression.
 
@@ -213,11 +213,7 @@ IMPORTANT:
             else:
                 logger.error("Empty response from Ollama")
                 return {
-                    "compatibility_score": 0,
-                    "summary": "Empty response from AI model",
-                    "matched_skills": [],
-                    "missing_skills": [],
-                    "recommendations": []
+                    "summary": "Empty response from AI model"
                 }
 
         except Exception as e:
@@ -225,9 +221,5 @@ IMPORTANT:
             logger.error(f"Analysis failed: {e}")
             # Return basic fallback
             return {
-                "compatibility_score": 0,
-                "summary": "Analysis failed due to internal error.",
-                "matched_skills": [],
-                "missing_skills": [],
-                "recommendations": ["Please retry later."]
+                "summary": "Analysis failed due to internal error."
             }
