@@ -26,6 +26,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ResumeAnalysis> analysisHistory = new ArrayList<>();
@@ -94,6 +98,14 @@ public class User {
 
     public void setAnalysisHistory(List<ResumeAnalysis> analysisHistory) {
         this.analysisHistory = analysisHistory;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
 

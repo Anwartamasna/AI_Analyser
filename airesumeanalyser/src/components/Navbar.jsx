@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, FileText, CheckCircle, BarChart2, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, FileText, CheckCircle, BarChart2, User, LogOut, Settings, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -72,6 +72,11 @@ const Navbar = () => {
                                 <Link to="/profile" className="text-gray-700 hover:text-indigo-600 font-medium text-sm flex items-center">
                                     <User size={18} className="mr-1" /> Profile
                                 </Link>
+                                {isAdmin && (
+                                    <Link to="/admin" className="text-purple-700 hover:text-purple-900 font-medium text-sm flex items-center">
+                                        <Shield size={18} className="mr-1" /> Admin
+                                    </Link>
+                                )}
                                 <button onClick={handleLogout} className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-100 transition flex items-center">
                                     <LogOut size={16} className="mr-2" /> Logout
                                 </button>
@@ -116,6 +121,9 @@ const Navbar = () => {
                             <>
                                 <Link to="/dashboard" className="block w-full text-left py-2 font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                                 <Link to="/profile" className="block w-full text-left py-2 font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
+                                {isAdmin && (
+                                    <Link to="/admin" className="block w-full text-left py-2 font-medium text-purple-700" onClick={() => setMobileMenuOpen(false)}>Admin Panel</Link>
+                                )}
                                 <button onClick={handleLogout} className="mt-2 w-full bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold">Logout</button>
                             </>
                         ) : (

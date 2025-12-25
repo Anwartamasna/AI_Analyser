@@ -44,8 +44,12 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
 
-            System.out.println("Login success for user: " + username);
-            return ResponseEntity.ok(Map.of("token", jwt, "username", username));
+            // Get user role
+            User user = userRepository.findByUsername(username).orElse(null);
+            String role = user != null ? user.getRole().name() : "USER";
+
+            System.out.println("Login success for user: " + username + " with role: " + role);
+            return ResponseEntity.ok(Map.of("token", jwt, "username", username, "role", role));
         } catch (Exception e) {
             System.err.println("Login failed for user: " + username + " Error: " + e.getMessage());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid username or password"));

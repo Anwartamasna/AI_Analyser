@@ -31,9 +31,9 @@ export const AuthProvider = ({ children }) => {
 
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify({ username: data.username }));
+        localStorage.setItem('user', JSON.stringify({ username: data.username, role: data.role }));
         setToken(data.token);
-        setUser({ username: data.username });
+        setUser({ username: data.username, role: data.role });
         return data;
     };
 
@@ -58,11 +58,14 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const isAdmin = user?.role === 'ADMIN';
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, register, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, register, loading, isAdmin }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
 export const useAuth = () => useContext(AuthContext);
+
