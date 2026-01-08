@@ -38,11 +38,11 @@ pipeline {
                         dir('nlp-service') {
                             sh '''
                                 echo "Setting up Python environment..."
-                                pip install -r requirements.txt --quiet || true
-                                pip install pytest pytest-cov --quiet
+                                pip3 install -r requirements.txt --quiet || true
+                                pip3 install pytest pytest-cov --quiet || true
                                 
                                 echo "Running Python tests..."
-                                python -m pytest test_resume_processor.py -v \
+                                python3 -m pytest test_resume_processor.py -v \
                                     --cov=. \
                                     --cov-report=xml:coverage.xml \
                                     --cov-report=html:htmlcov \
