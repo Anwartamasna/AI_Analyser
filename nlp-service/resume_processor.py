@@ -151,29 +151,36 @@ Perform a comprehensive analysis following these guidelines:
 
 4. **EXPERIENCE ANALYSIS**: Evaluate years of experience, relevance of past roles, and career progression.
 
-5. **RECOMMENDATIONS**: Provide 4-6 SPECIFIC, ACTIONABLE recommendations:
+5. **RECOMMENDATIONS**: Provide 4-6 SPECIFIC, ACTIONABLE recommendations as clear bullet points. Each recommendation should be:
+   - Concise and to the point (one clear action per bullet)
    - How to tailor the resume for THIS specific role
    - Skills to highlight more prominently
    - Certifications or training to pursue
    - How to address experience gaps
    - Keywords to add for ATS optimization
 
-6. **SUMMARY**: Write a 2-3 sentence professional assessment of the candidate's fit, highlighting their strongest selling points and main improvement areas.
+6. **SUMMARY**: Write a professional assessment formatted as organized bullet points using the • symbol. Include:
+   • Overall fit assessment (one sentence)
+   • Top 2-3 strongest selling points  
+   • Main improvement areas
+   • Key next steps for the candidate
+   Format as: "• Point 1 • Point 2 • Point 3" etc.
 
 === OUTPUT FORMAT (STRICT JSON) ===
 {{
     "compatibility_score": <integer 0-100>,
     "is_suitable": <boolean - true if score >= 60>,
-    "summary": "<2-3 sentence professional assessment>",
+    "summary": "• <Overall fit assessment>/n • <Strongest selling point 1>/n • <Strongest selling point 2>/n • <Main improvement area>/n • <Key next step>/n",
     "experience_level": "<Entry Level / Mid Level / Senior / Executive>",
     "matched_skills": ["<skill1>", "<skill2>", "<skill3>", ...],
     "missing_skills": ["<critical_skill1>", "<critical_skill2>", ...],
     "strengths": ["<key_strength1>", "<key_strength2>", "<key_strength3>"],
     "recommendations": [
-        "<specific actionable recommendation 1>",
-        "<specific actionable recommendation 2>",
-        "<specific actionable recommendation 3>",
-        "<specific actionable recommendation 4>"
+        "• <Concise actionable recommendation 1>/n",
+        "• <Concise actionable recommendation 2>/n",
+        "• <Concise actionable recommendation 3>/n",
+        "• <Concise actionable recommendation 4>/n",
+        "• <Concise actionable recommendation 5>/n"
     ],
     "ats_keywords": ["<keyword1>", "<keyword2>", "<keyword3>"],
     "interview_tips": "<One key tip for interviewing for this role>"
