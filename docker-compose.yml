@@ -140,10 +140,63 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  # CI/CD Services
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: resume_jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=true
+    networks:
+      - resume_network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: resume_sonarqube
+    depends_on:
+      - sonar-db
+    ports:
+      - "9002:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonarpass
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - resume_network
+
+  sonar-db:
+    image: postgres:15
+    container_name: resume_sonar_db
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonarpass
+      POSTGRES_DB: sonarqube
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+    networks:
+      - resume_network
+
 volumes:
   postgres_data:
   minio_data:
   ollama_data:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonar_db_data:
 
 
 networks:

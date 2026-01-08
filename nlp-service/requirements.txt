@@ -10,3 +10,5 @@ pytesseract
 Pillow
 requests
 pymupdf
+pytest
+pytest-cov
