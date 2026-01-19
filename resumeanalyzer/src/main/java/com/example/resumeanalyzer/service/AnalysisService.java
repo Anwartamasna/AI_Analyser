@@ -130,7 +130,7 @@ public class AnalysisService {
 
             return result;
 
-        } catch (Exception e) {
+        } catch (InterruptedException  e) {
             System.err.println("Timeout or error waiting for analysis: " + e.getMessage());
             // Fallback to provisional if timeout
             Map<String, Object> provisionalResult = new HashMap<>();
