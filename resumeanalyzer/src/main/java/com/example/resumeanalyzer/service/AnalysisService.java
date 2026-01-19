@@ -71,7 +71,8 @@ public class AnalysisService {
         // 3. Send to Kafka (Python Service)
         String resumeText = "Resume file: " + fileUrl;
         try {
-            if (resumeFile.getOriginalFilename() != null && resumeFile.getOriginalFilename().endsWith(".txt")) {
+            String originalFilename = resumeFile.getOriginalFilename();
+            if (originalFilename != null && originalFilename.endsWith(".txt")) {
                 resumeText = new String(resumeFile.getBytes());
             }
         } catch (Exception e) {
