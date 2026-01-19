@@ -57,7 +57,7 @@ class ResumeControllerTest {
     }
 
     @Test
-    void analyzeResume_EmptyFile_ReturnsBadRequest() {
+    void analyzeResume_EmptyFile_ReturnsBadRequest() throws IOException {
         // Arrange
         MockMultipartFile emptyFile = new MockMultipartFile(
                 "resume",
@@ -76,7 +76,7 @@ class ResumeControllerTest {
     }
 
     @Test
-    void analyzeResume_EmptyJobDescription_ReturnsBadRequest() {
+    void analyzeResume_EmptyJobDescription_ReturnsBadRequest() throws IOException {
         // Arrange
         MockMultipartFile resumeFile = new MockMultipartFile(
                 "resume",
