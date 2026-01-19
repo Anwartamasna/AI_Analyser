@@ -77,7 +77,6 @@ class MinioServiceTest {
     @Test
     void uploadFile_ThrowsException_WhenMinioFails() throws Exception {
         // Arrange
-        when(multipartFile.getOriginalFilename()).thenReturn("test.pdf");
         when(minioClient.bucketExists(any(BucketExistsArgs.class)))
                 .thenThrow(new RuntimeException("MinIO connection failed"));
 
