@@ -130,9 +130,28 @@ public class AnalysisService {
 
             return result;
 
-        } catch (InterruptedException  e) {
-            System.err.println("Timeout or error waiting for analysis: " + e.getMessage());
-            // Fallback to provisional if timeout
+        } catch (InterruptedException e) {
+            // Re-interrupt the thread to preserve interrupt status
+            Thread.currentThread().interrupt();
+            System.err.println("Analysis was interrupted: " + e.getMessage());
+            Map<String, Object> provisionalResult = new HashMap<>();
+            provisionalResult.put("suitability_score", 0);
+            provisionalResult.put("is_suitable", false);
+            provisionalResult.put("job_title", "Analysis Interrupted");
+            provisionalResult.put("status", "INTERRUPTED");
+            provisionalResult.put("message", "Analysis was interrupted. Please try again.");
+            return provisionalResult;
+        } catch (java.util.concurrent.ExecutionException e) {
+            System.err.println("Error during analysis execution: " + e.getMessage());
+            Map<String, Object> provisionalResult = new HashMap<>();
+            provisionalResult.put("suitability_score", 0);
+            provisionalResult.put("is_suitable", false);
+            provisionalResult.put("job_title", "Analysis Failed");
+            provisionalResult.put("status", "ERROR");
+            provisionalResult.put("message", "Analysis failed. Please try again.");
+            return provisionalResult;
+        } catch (java.util.concurrent.TimeoutException e) {
+            System.err.println("Timeout waiting for analysis: " + e.getMessage());
             Map<String, Object> provisionalResult = new HashMap<>();
             provisionalResult.put("suitability_score", 0);
             provisionalResult.put("is_suitable", false);
