@@ -14,6 +14,70 @@ pipeline {
             }
         }
         
+        stage('Install Tools') {
+            steps {
+                sh '''
+                    echo "============================================"
+                    echo "Installing Required Build Tools..."
+                    echo "============================================"
+                    
+                    # Update package lists
+                    apt-get update -qq || sudo apt-get update -qq || true
+                    
+                    # Install Python 3 and pip
+                    echo "Installing Python 3..."
+                    apt-get install -y -qq python3 python3-pip python3-venv || \
+                        sudo apt-get install -y -qq python3 python3-pip python3-venv || true
+                    
+                    # Install Node.js and npm (using NodeSource for latest LTS)
+                    echo "Installing Node.js..."
+                    if ! command -v node &> /dev/null; then
+                        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - || \
+                            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - || true
+                        apt-get install -y -qq nodejs || sudo apt-get install -y -qq nodejs || true
+                    fi
+                    
+                    # Install Java 17 (OpenJDK)
+                    echo "Installing Java 17..."
+                    apt-get install -y -qq openjdk-17-jdk || \
+                        sudo apt-get install -y -qq openjdk-17-jdk || true
+                    
+                    # Install additional build tools
+                    echo "Installing additional tools..."
+                    apt-get install -y -qq curl wget git unzip || \
+                        sudo apt-get install -y -qq curl wget git unzip || true
+                    
+                    # Install Docker CLI (if not present)
+                    echo "Checking Docker..."
+                    if ! command -v docker &> /dev/null; then
+                        apt-get install -y -qq docker.io || \
+                            sudo apt-get install -y -qq docker.io || true
+                    fi
+                    
+                    # Install Docker Compose (if not present)
+                    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+                        echo "Installing Docker Compose..."
+                        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || true
+                        chmod +x /usr/local/bin/docker-compose || true
+                    fi
+                    
+                    echo "============================================"
+                    echo "Tools Installation Complete!"
+                    echo "============================================"
+                    
+                    # Verify installations
+                    echo "Installed versions:"
+                    echo "Python: $(python3 --version 2>&1 || echo 'Not installed')"
+                    echo "Pip: $(pip3 --version 2>&1 || echo 'Not installed')"
+                    echo "Node.js: $(node --version 2>&1 || echo 'Not installed')"
+                    echo "npm: $(npm --version 2>&1 || echo 'Not installed')"
+                    echo "Java: $(java -version 2>&1 | head -1 || echo 'Not installed')"
+                    echo "Docker: $(docker --version 2>&1 || echo 'Not installed')"
+                    echo "Docker Compose: $(docker compose version 2>&1 || docker-compose --version 2>&1 || echo 'Not installed')"
+                '''
+            }
+        }
+        
         stage('Build & Test') {
             parallel {
                 stage('Backend - Java') {
