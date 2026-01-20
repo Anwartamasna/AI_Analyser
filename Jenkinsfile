@@ -172,7 +172,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Building Docker images..."
-                    docker-compose build app-backend nlp-service app-frontend
+                    docker-compose build app-backend ocr-service app-frontend
                 '''
             }
         }
@@ -185,7 +185,7 @@ pipeline {
                     docker-compose up -d postgres minio zookeeper kafka ollama
                     echo "Waiting for infrastructure services..."
                     sleep 15
-                    docker-compose up -d app-backend nlp-service app-frontend kafka-ui
+                    docker-compose up -d app-backend ocr-service app-frontend kafka-ui
                     echo "Deployment complete!"
                 '''
             }
