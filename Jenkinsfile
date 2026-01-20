@@ -166,40 +166,17 @@ pipeline {
             }
         }
         
-        stage('Quality Gate') {
-            steps {
-                script {
-                    try {
-                        timeout(time: 1, unit: 'MINUTES') {
-                            def qg = waitForQualityGate abortPipeline: false
-                            echo "Quality Gate status: ${qg.status}"
-                            if (qg.status != 'OK') {
-                                echo "Quality Gate failed but pipeline will continue"
-                            }
-                        }
-                    } catch (Exception e) {
-                        echo "Quality Gate check skipped: ${e.getMessage()}"
-                        echo "This is expected if SonarQube webhook is not configured."
-                        echo "Continuing pipeline..."
-                    }
-                }
-            }
-        }
-        
         stage('Build Docker Images') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '''
                         echo "Building Docker images..."
                         docker compose build app-backend nlp-service app-frontend
                     '''
-                }
             }
         }
         
         stage('Deploy') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '''
                         echo "Deploying application with Docker Compose..."
                         docker compose down || true
@@ -209,7 +186,6 @@ pipeline {
                         docker compose up -d app-backend nlp-service app-frontend kafka-ui
                         echo "Deployment complete!"
                     '''
-                }
             }
         }
     }
