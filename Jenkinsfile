@@ -54,12 +54,14 @@ pipeline {
                             sudo apt-get install -y -qq docker.io || true
                     fi
                     
-                    # Install Docker Compose (if not present)
-                    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-                        echo "Installing Docker Compose..."
-                        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || true
-                        chmod +x /usr/local/bin/docker-compose || true
+                    # Install Docker Compose (required for building and deploying)
+                    echo "Installing Docker Compose..."
+                    if ! command -v docker-compose &> /dev/null; then
+                        curl -SL "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+                        chmod +x /usr/local/bin/docker-compose
+                        ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose || true
                     fi
+                    docker-compose --version
                     
                     echo "============================================"
                     echo "Tools Installation Complete!"
@@ -170,20 +172,20 @@ pipeline {
             steps {
                 sh '''
                     echo "Building Docker images..."
-                    docker compose build app-backend nlp-service app-frontend || docker compose build app-backend nlp-service app-frontend
+                    docker-compose build app-backend nlp-service app-frontend
                 '''
             }
-    }
+        }
         
         stage('Deploy') {
             steps {
                 sh '''
                     echo "Deploying application with Docker Compose..."
-                    docker-compose down || docker compose down || true
-                    docker-compose up -d postgres minio zookeeper kafka ollama || docker compose up -d postgres minio zookeeper kafka ollama
+                    docker-compose down || true
+                    docker-compose up -d postgres minio zookeeper kafka ollama
                     echo "Waiting for infrastructure services..."
                     sleep 15
-                    docker-compose up -d app-backend nlp-service app-frontend kafka-ui || docker compose up -d app-backend nlp-service app-frontend kafka-ui
+                    docker-compose up -d app-backend nlp-service app-frontend kafka-ui
                     echo "Deployment complete!"
                 '''
             }
