@@ -170,7 +170,7 @@ pipeline {
             steps {
                     sh '''
                         echo "Building Docker images..."
-                        docker compose build app-backend nlp-service app-frontend
+                        docker compose --build app-backend nlp-service app-frontend
                     '''
             }
         }
