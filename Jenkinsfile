@@ -99,9 +99,9 @@ pipeline {
                     }
                 }
                 
-                stage('NLP Service - Python') {
+                stage('OCR Service - Python') {
                     steps {
-                        dir('nlp-service') {
+                        dir('ocr-service') {
                             sh '''
                                 echo "Setting up Python environment..."
                                 pip3 install -r requirements.txt --quiet --break-system-packages || true

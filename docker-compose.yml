@@ -50,11 +50,11 @@ services:
     networks:
       - resume_network
 
-  nlp-service:
+  ocr-service:
     build:
-      context: ./nlp-service
+      context: ./ocr-service
       dockerfile: Dockerfile
-    container_name: resume_nlp_service
+    container_name: resume_ocr_service
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_REQUEST_TOPIC: resume-analysis-request
