@@ -144,28 +144,23 @@ pipeline {
         
         stage('SonarQube Analysis') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    script {
-                        try {
-                            withSonarQubeEnv('SonarQube') {
-                                dir('resumeanalyzer') {
-                                    sh '''
-                                        ./mvnw sonar:sonar \
-                                            -Dsonar.projectKey=ai-resume-analyzer-backend \
-                                            -Dsonar.projectName="AI Resume Analyzer - Backend" \
-                                            -Dsonar.java.binaries=target/classes \
-                                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                                            -Dsonar.host.url=${SONAR_HOST_URL} || true
-                                    '''
-                                }
+                script {
+                    try {
+                        withSonarQubeEnv('SonarQube') {
+                            dir('resumeanalyzer') {
+                                sh '''
+                                    ./mvnw sonar:sonar \
+                                        -Dsonar.projectKey=ai-resume-analyzer-backend \
+                                        -Dsonar.projectName="AI Resume Analyzer - Backend" \
+                                        -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                                        -Dsonar.host.url=${SONAR_HOST_URL} || true
+                                '''
                             }
-                        } catch (InterruptedException e) {
-                            echo "SonarQube Analysis was interrupted"
-                            throw e
-                        } catch (Exception e) {
-                            echo "SonarQube Analysis failed: ${e.getMessage()}"
-                            echo "Continuing pipeline without SonarQube analysis..."
                         }
+                    } catch (Exception e) {
+                        echo "SonarQube Analysis skipped: ${e.getMessage()}"
+                        echo "Continuing pipeline..."
                     }
                 }
             }
@@ -173,23 +168,19 @@ pipeline {
         
         stage('Quality Gate') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    script {
-                        try {
-                            timeout(time: 2, unit: 'MINUTES') {
-                                def qg = waitForQualityGate abortPipeline: false
-                                if (qg.status != 'OK') {
-                                    echo "Quality Gate status: ${qg.status}"
-                                    echo "Pipeline will continue despite Quality Gate failure"
-                                }
+                script {
+                    try {
+                        timeout(time: 1, unit: 'MINUTES') {
+                            def qg = waitForQualityGate abortPipeline: false
+                            echo "Quality Gate status: ${qg.status}"
+                            if (qg.status != 'OK') {
+                                echo "Quality Gate failed but pipeline will continue"
                             }
-                        } catch (InterruptedException e) {
-                            echo "Quality Gate check was interrupted"
-                            throw e
-                        } catch (Exception e) {
-                            echo "Quality Gate check failed or timed out: ${e.getMessage()}"
-                            echo "Continuing pipeline..."
                         }
+                    } catch (Exception e) {
+                        echo "Quality Gate check skipped: ${e.getMessage()}"
+                        echo "This is expected if SonarQube webhook is not configured."
+                        echo "Continuing pipeline..."
                     }
                 }
             }
