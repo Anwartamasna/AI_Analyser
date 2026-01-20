@@ -168,16 +168,16 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                    sh '''
-                        echo "Building Docker images..."
-                        docker compose --build app-backend nlp-service app-frontend
-                    '''
+            sh '''
+                echo "Building Docker images..."
+                docker compose build app-backend nlp-service app-frontend
+            '''
             }
         }
         
         stage('Deploy') {
             steps {
-                    sh '''
+                sh '''
                         echo "Deploying application with Docker Compose..."
                         docker compose down || true
                         docker compose up -d postgres minio zookeeper kafka ollama
