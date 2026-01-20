@@ -1,0 +1,9 @@
+# Heavy dependencies - installed first for Docker layer caching
+# Using CPU-only PyTorch (much smaller: ~200MB vs ~2GB)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.1.0+cpu
+
+# These depend on torch, so install after
+transformers==4.36.0
+sentence-transformers==2.2.2
+spacy==3.7.2

@@ -1,14 +1,11 @@
-kafka-python
-spacy
-sentence-transformers
-torch
-transformers
-numpy
-pandas
-minio
-pytesseract
-Pillow
-requests
-pymupdf
-pytest
-pytest-cov
+# Light dependencies - these install quickly
+numpy==1.26.2
+pandas==2.1.4
+minio==7.2.0
+pytesseract==0.3.10
+Pillow==10.1.0
+requests==2.31.0
+pymupdf==1.23.7
+kafka-python==2.0.2
+pytest==7.4.3
+pytest-cov==4.1.0
