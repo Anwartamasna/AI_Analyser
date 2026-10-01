@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-service
+  namespace: ai-resume
+  labels:
+    app: ocr-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocr-service
+  template:
+    metadata:
+      labels:
+        app: ocr-service
+    spec:
+      containers:
+        - name: ocr-service
+          image: anwartamasna/ai-resume-ocr:latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-resume-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: KAFKA_REQUEST_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-resume-config
+                  key: KAFKA_REQUEST_TOPIC
+            - name: KAFKA_RESPONSE_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-resume-config
+                  key: KAFKA_RESPONSE_TOPIC
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-resume-config
+                  key: MINIO_ENDPOINT
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-resume-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-resume-secrets
+                  key: MINIO_SECRET_KEY
+            - name: OLLAMA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-resume-config
+                  key: OLLAMA_HOST
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi

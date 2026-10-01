@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-resume
+
+resources:
+  - 00-namespace.yaml
+  - 01-config-secrets.yaml
+  - 02-storage.yaml
+  - 03-postgres.yaml
+  - 04-minio.yaml
+  - 05-kafka-zookeeper.yaml
+  - 06-ollama.yaml
+  - 07-backend.yaml
+  - 08-ocr-service.yaml
+  - 09-frontend.yaml
+  - 10-ingress.yaml
