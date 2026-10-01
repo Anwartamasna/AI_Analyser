@@ -23,19 +23,25 @@ pipeline {
 
     stages {
         // =====================================================================
-        // STAGE 1: CLONE REPOSITORY
+        // STAGE 1: CLONE / VERIFY WORKSPACE
         // =====================================================================
-        stage('Clone / Checkout') {
+        stage('Clone / Verify') {
             steps {
-                echo "Cloning source code from: ${params.GIT_REPO_URL} (${params.GIT_BRANCH})..."
-                git branch: params.GIT_BRANCH, url: params.GIT_REPO_URL
-                sh '''
+                script {
+                    if (!fileExists('resumeanalyzer') && !fileExists('airesumeanalyser')) {
+                        echo "Cloning source code from: ${params.GIT_REPO_URL} (${params.GIT_BRANCH})..."
+                        git branch: params.GIT_BRANCH, url: params.GIT_REPO_URL
+                    } else {
+                        echo "Source code already available in workspace from SCM."
+                    }
                     echo "============================================="
+                    echo "Repository: ${params.GIT_REPO_URL}"
                     echo "Branch: ${params.GIT_BRANCH}"
-                    echo "Commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
-                    echo "Build Tag: ${IMAGE_TAG}"
+                    echo "Build Tag: ${env.IMAGE_TAG}"
+                    echo "Docker Hub User: ${params.DOCKERHUB_USER}"
+                    echo "Target Namespace: ${params.K8S_NAMESPACE}"
                     echo "============================================="
-                '''
+                }
             }
         }
 
@@ -174,24 +180,24 @@ pipeline {
                         usernameVariable: 'DH_USER',
                         passwordVariable: 'DH_PASS'
                     )]) {
-                        sh '''
+                        sh """
                             echo "Authenticating to Docker Hub..."
-                            echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                            echo "\$DH_PASS" | docker login -u "\$DH_USER" --password-stdin
 
                             echo "Pushing Backend images..."
-                            docker push "${BACKEND_IMAGE}:${IMAGE_TAG}"
-                            docker push "${BACKEND_IMAGE}:latest"
+                            docker push "${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
+                            docker push "${env.BACKEND_IMAGE}:latest"
 
                             echo "Pushing OCR Service images..."
-                            docker push "${OCR_IMAGE}:${IMAGE_TAG}"
-                            docker push "${OCR_IMAGE}:latest"
+                            docker push "${env.OCR_IMAGE}:${env.IMAGE_TAG}"
+                            docker push "${env.OCR_IMAGE}:latest"
 
                             echo "Pushing Frontend images..."
-                            docker push "${FRONTEND_IMAGE}:${IMAGE_TAG}"
-                            docker push "${FRONTEND_IMAGE}:latest"
+                            docker push "${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
+                            docker push "${env.FRONTEND_IMAGE}:latest"
 
                             echo "All images pushed to Docker Hub successfully!"
-                        '''
+                        """
                     }
                 }
             }
