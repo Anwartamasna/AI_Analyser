@@ -106,7 +106,7 @@ pipeline {
                         dir('ocr-service') {
                             sh '''
                                 echo "Running Python OCR Service tests..."
-                                pip3 install pytest pytest-cov --quiet --break-system-packages || true
+                                pip3 install pytest pytest-cov requests minio PyMuPDF pytesseract Pillow --quiet --break-system-packages || true
                                 python3 -m pytest test_resume_processor.py -v \
                                     --junitxml=test-results.xml 2>&1 || echo "Python tests completed"
                                 
