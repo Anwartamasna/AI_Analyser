@@ -83,8 +83,8 @@ public class AnalysisService {
 
         // 4. Wait for response (Pseudo-Sync)
         try {
-            // Wait up to 30 seconds for the Python service to reply
-            ResumeAnalysis completedAnalysis = future.get(30, TimeUnit.SECONDS);
+            // Wait up to 120 seconds for the Python service to reply
+            ResumeAnalysis completedAnalysis = future.get(120, TimeUnit.SECONDS);
 
             // Map Entity to Frontend JSON structure
             Map<String, Object> result = new HashMap<>();

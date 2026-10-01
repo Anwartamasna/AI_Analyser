@@ -80,8 +80,9 @@ class ResumeProcessor:
         text = ""
         
         try:
+            file_bytes = file_stream.getvalue() if hasattr(file_stream, 'getvalue') else (file_stream.read() if hasattr(file_stream, 'read') else file_stream)
             if filename.lower().endswith('.pdf'):
-                doc = fitz.open(stream=file_stream, filetype="pdf")
+                doc = fitz.open(stream=file_bytes, filetype="pdf")
                 for page in doc:
                     text += page.get_text()
                 
@@ -94,12 +95,15 @@ class ResumeProcessor:
                         text += pytesseract.image_to_string(img)
             
             elif filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
-                img = Image.open(file_stream)
+                img = Image.open(BytesIO(file_bytes) if isinstance(file_bytes, bytes) else file_stream)
                 text = pytesseract.image_to_string(img)
             
             else:
                 # Text or other
-                text = file_stream.read().decode('utf-8', errors='ignore')
+                if isinstance(file_bytes, bytes):
+                    text = file_bytes.decode('utf-8', errors='ignore')
+                else:
+                    text = str(file_bytes)
 
         except Exception as e:
             logger.error(f"OCR/Extraction failed: {e}")
@@ -120,77 +124,37 @@ class ResumeProcessor:
                 logger.error(f"Failed to get resume text: {e}")
                 resume_text = "Error extracting resume text."
 
-            # 2. Call Ollama with enhanced prompt
-            prompt = f"""You are an expert HR professional, career coach, and ATS (Applicant Tracking System) specialist with 15+ years of experience in tech recruitment.
+            # Limit resume text length to ensure fast prompt evaluation on CPU (~3500 chars)
+            trimmed_resume = resume_text[:3500] if len(resume_text) > 3500 else resume_text
 
-Analyze the candidate's resume against the job description with EXTREME attention to detail. Be both encouraging and honest.
+            # 2. Call Ollama with concise ATS evaluation prompt
+            prompt = f"""You are an ATS (Applicant Tracking System) recruiter. Evaluate the candidate's resume for the target job description.
 
 === JOB DESCRIPTION ===
 {job_description}
 
 === CANDIDATE'S RESUME ===
-{resume_text}
+{trimmed_resume}
 
-=== ANALYSIS INSTRUCTIONS ===
-Perform a comprehensive analysis following these guidelines:
-
-1. **COMPATIBILITY SCORE (0-100)**: 
-   - 90-100: Exceptional match, exceeds requirements
-   - 75-89: Strong match, meets most requirements  
-   - 60-74: Good potential, some gaps to address
-   - 40-59: Partial match, significant development needed
-   - 0-39: Major mismatch, consider other roles
-
-2. **MATCHED SKILLS**: List ALL skills from the resume that match or relate to job requirements. Include:
-   - Hard technical skills (programming languages, tools, frameworks)
-   - Soft skills (leadership, communication, teamwork)
-   - Domain knowledge and industry experience
-   - Certifications and qualifications
-
-3. **MISSING SKILLS**: Identify CRITICAL skills required by the job that are not mention in the resume. Suggest skills to improve and prioritize by importance.
-
-4. **EXPERIENCE ANALYSIS**: Evaluate years of experience, relevance of past roles, and career progression.
-
-5. **RECOMMENDATIONS**: Provide 4-6 SPECIFIC, ACTIONABLE recommendations as clear bullet points. Each recommendation should be:
-   - Concise and to the point (one clear action per bullet)
-   - How to tailor the resume for THIS specific role
-   - Skills to highlight more prominently
-   - Certifications or training to pursue
-   - How to address experience gaps
-   - Keywords to add for ATS optimization
-
-6. **SUMMARY**: Write a professional assessment formatted as organized bullet points using the • symbol. Include:
-   • Overall fit assessment (one sentence)
-   • Top 2-3 strongest selling points  
-   • Main improvement areas
-   • Key next steps for the candidate
-   Format as: "• Point 1 • Point 2 • Point 3" etc.
-
-=== OUTPUT FORMAT (STRICT JSON) ===
+Output ONLY a valid JSON object matching this exact schema:
 {{
     "compatibility_score": <integer 0-100>,
     "is_suitable": <boolean - true if score >= 60>,
-    "summary": "• <Overall fit assessment>/n • <Strongest selling point 1>/n • <Strongest selling point 2>/n • <Main improvement area>/n • <Key next step>/n",
+    "summary": "• <Assessment point 1> • <Assessment point 2> • <Assessment point 3>",
     "experience_level": "<Entry Level / Mid Level / Senior / Executive>",
-    "matched_skills": ["<skill1>", "<skill2>", "<skill3>", ...],
-    "missing_skills": ["<critical_skill1>", "<critical_skill2>", ...],
-    "strengths": ["<key_strength1>", "<key_strength2>", "<key_strength3>"],
+    "matched_skills": ["<skill1>", "<skill2>", "<skill3>"],
+    "missing_skills": ["<critical_skill1>", "<critical_skill2>"],
+    "strengths": ["<strength1>", "<strength2>"],
     "recommendations": [
-        "• <Concise actionable recommendation 1>/n",
-        "• <Concise actionable recommendation 2>/n",
-        "• <Concise actionable recommendation 3>/n",
-        "• <Concise actionable recommendation 4>/n",
-        "• <Concise actionable recommendation 5>/n"
+        "• <Actionable recommendation 1>",
+        "• <Actionable recommendation 2>",
+        "• <Actionable recommendation 3>"
     ],
-    "ats_keywords": ["<keyword1>", "<keyword2>", "<keyword3>"],
-    "interview_tips": "<One key tip for interviewing for this role>"
+    "ats_keywords": ["<keyword1>", "<keyword2>"],
+    "interview_tips": "<One key interview tip>"
 }}
 
-IMPORTANT: 
-- Be HONEST but CONSTRUCTIVE. Don't inflate scores.
-- Provide SPECIFIC advice, not generic statements.
-- Focus on what the candidate CAN improve.
-- Output ONLY valid JSON, no markdown or extra text."""
+IMPORTANT: Output ONLY valid JSON, no markdown formatting or extra text."""
 
             logger.info(f"Analyzing resume (length: {len(resume_text)}) with job description (length: {len(job_description)})")
             logger.info(f"Ollama Prompt (first 500 chars): {prompt[:500]}...")
@@ -201,8 +165,9 @@ IMPORTANT:
                 "format": "json",
                 "stream": False,
                 "options": {
-                    "temperature": 0.3,
-                    "num_predict": 2048
+                    "temperature": 0.2,
+                    "num_predict": 400,
+                    "num_ctx": 2048
                 }
             }
 
