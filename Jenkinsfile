@@ -2,6 +2,8 @@ pipeline {
     agent any
 
     parameters {
+        string(name: 'GIT_REPO_URL', defaultValue: 'https://github.com/Anwartamasna/AI_Analyser.git', description: 'Git Repository URL to clone')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch to checkout')
         string(name: 'DOCKERHUB_USER', defaultValue: 'anwartamasna', description: 'Docker Hub Username / Organization')
         string(name: 'K8S_NAMESPACE', defaultValue: 'ai-resume', description: 'Target Kubernetes Namespace in K3s')
         string(name: 'DOCKERHUB_CREDS_ID', defaultValue: 'dockerhub-credentials', description: 'Jenkins Credentials ID for Docker Hub')
@@ -25,11 +27,11 @@ pipeline {
         // =====================================================================
         stage('Clone / Checkout') {
             steps {
-                echo 'Checking out source code repository...'
-                checkout scm
+                echo "Cloning source code from: ${params.GIT_REPO_URL} (${params.GIT_BRANCH})..."
+                git branch: params.GIT_BRANCH, url: params.GIT_REPO_URL
                 sh '''
                     echo "============================================="
-                    echo "Branch: ${GIT_BRANCH:-main}"
+                    echo "Branch: ${params.GIT_BRANCH}"
                     echo "Commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
                     echo "Build Tag: ${IMAGE_TAG}"
                     echo "============================================="
